@@ -1,0 +1,45 @@
+name: Build churn-report deck
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  churn-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Fetch your repository
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    # Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Run the three scripts in order
+    - name: Train model
+      run: python 01_train_model.py
+
+    - name: Generate PNGs
+      run: python 02_gen_pngs.py
+
+    - name: Build PowerPoint deck
+      run: python 03_build_deck.py
+
+    # Upload artifacts so you can download them from the Actions UI
+    - uses: actions/upload-artifact@v4
+      with:
+        name: churn-report-assets
+        path: |
+          output/monthly_kpis.pptx
+          output/*.png
